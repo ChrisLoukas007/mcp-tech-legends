@@ -1,0 +1,22 @@
+[project]
+name = "agent-cli"
+version = "0.1.0"
+description = "A custom MCP host: Claude plus one MCP client per server, with a hand-written tool loop"
+requires-python = ">=3.12"
+dependencies = [
+    "anthropic>=2.3.0",
+    "mcp>=2.3.0,<3",
+    "httpx2>=2.16.0",
+    "pydantic-settings>=2.16.2",
+    "mcp-kit",
+]
+
+[project.scripts]
+agent-cli = "agent_cli.__main__:main"
+
+[tool.uv.sources]
+mcp-kit = { workspace = true }
+
+[build-system]
+requires = ["uv_build>=0.13.5,<0.14.0"]
+build-backend = "uv_build"

@@ -10,6 +10,7 @@ dependencies = [
     "wiki-mcp",
     "hall-of-fame-api",
     "hall-of-fame-mcp",
+    "agent-cli",
 ]
 
 [tool.uv]
@@ -24,6 +25,7 @@ figures-db-mcp = { workspace = true }
 wiki-mcp = { workspace = true }
 hall-of-fame-api = { workspace = true }
 hall-of-fame-mcp = { workspace = true }
+agent-cli = { workspace = true }
 
 [dependency-groups]
 dev = [
@@ -65,5 +67,5 @@ known-first-party = ["mcp_kit", "figures_db_mcp", "wiki_mcp", "hall_of_fame_mcp"
 python_version = "3.12"
 strict = true
 ignore_missing_imports = true
-files = ["packages", "servers", "apps"]
+files = ["packages", "servers", "apps", "hosts"]
 exclude = ["/tests/"]
