@@ -1,0 +1,21 @@
+# Alerts are evaluated by Prometheus and visible at http://localhost:9091/alerts.
+# (In production, Alertmanager would route them to a pager; left out to keep the stack small.)
+groups:
+  - name: mcp
+    rules:
+      - alert: McpServerDown
+        expr: up{job="mcp-servers"} == 0
+        for: 1m
+        labels: { severity: page }
+        annotations: { summary: "MCP server {{ $labels.instance }} is not answering /metrics" }
+
+      - alert: McpPermissionDeniedSpike
+        # Many denials in a short time can mean a prompt-injection attempt or a misconfigured host.
+        expr: sum by (server) (increase(mcp_authz_denied_total[5m])) > 20
+        labels: { severity: ticket }
+        annotations: { summary: "{{ $labels.server }}: unusual number of permission denials" }
+
+      - alert: McpAuditWriteFailing
+        expr: sum by (server) (increase(mcp_audit_write_failures_total[5m])) > 0
+        labels: { severity: page }
+        annotations: { summary: "{{ $labels.server }}: audit rows are not being written" }

@@ -1,0 +1,7 @@
+apiVersion: 1
+providers:
+  - name: tech-legends
+    folder: Tech Legends
+    type: file
+    options:
+      path: /var/lib/grafana/dashboards

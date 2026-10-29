@@ -35,4 +35,11 @@ test-integration:  ## all tests against the running stack
 	POSTGRES_ADMIN_URL=postgresql://postgres:$(POSTGRES_PASSWORD)@localhost:5433/legends \
 	AGENT_CLI_E2E=1 uv run pytest -q
 
-.PHONY: help env up down reset seed lint test test-integration
+demo:  ## ask the custom host one question over HTTP as ada (needs ANTHROPIC_API_KEY)
+	AGENT_CLI_OTLP_ENDPOINT=http://localhost:4318 uv run agent-cli --transport http --user ada \
+	  --ask "Compare Steve Jobs and Bill Gates' first products, check Wikipedia for anything missing, and save a short note about Bill Gates to my Hall of Fame."
+
+chat:  ## chat with the custom host, servers over stdio (needs ANTHROPIC_API_KEY)
+	uv run agent-cli
+
+.PHONY: help env up down reset seed lint test test-integration demo chat
