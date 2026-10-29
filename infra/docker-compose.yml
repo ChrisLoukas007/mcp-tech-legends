@@ -1,0 +1,32 @@
+# The whole stack. Services are named by what they ARE in an MCP system.
+#
+#   make up       (= docker compose -f infra/docker-compose.yml --env-file .env up -d --wait)
+#
+# Host ports avoid the defaults (5432, 8080, 3000, 9090) so this stack can run next to others.
+# Every port binds to 127.0.0.1 only.
+
+name: tech-legends
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: legends
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?set in .env}
+      FIGURES_READER_PASSWORD: ${FIGURES_READER_PASSWORD:?set in .env}
+      HALLOFFAME_APP_PASSWORD: ${HALLOFFAME_APP_PASSWORD:?set in .env}
+      AUDIT_WRITER_PASSWORD: ${AUDIT_WRITER_PASSWORD:?set in .env}
+    volumes:
+      - ./postgres/01_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
+      - ./postgres/02_roles.sql:/docker-entrypoint-initdb.d/02_roles.sql:ro
+      - ./postgres/03_seed.sql:/docker-entrypoint-initdb.d/03_seed.sql:ro
+      - pgdata:/var/lib/postgresql/data
+    ports: ["127.0.0.1:5433:5432"]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d legends"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+volumes:
+  pgdata:

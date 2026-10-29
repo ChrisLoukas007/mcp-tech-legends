@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "mcp-kit",
+    "figures-db-mcp",
 ]
 
 [tool.uv]
@@ -16,6 +17,7 @@ members = ["packages/*", "servers/*", "apps/*", "hosts/*"]
 
 [tool.uv.sources]
 mcp-kit = { workspace = true }
+figures-db-mcp = { workspace = true }
 
 [dependency-groups]
 dev = [
@@ -49,11 +51,13 @@ known-first-party = ["mcp_kit", "figures_db_mcp", "wiki_mcp", "hall_of_fame_mcp"
 
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**" = ["S105", "S106"]
-"infra/postgres/generate_seed.py" = ["S311"]
+"packages/mcp-kit/src/mcp_kit/testing.py" = ["S106"]
+# Offline generator: builds SQL text from constants in the same file, values escaped by sql().
+"infra/postgres/generate_seed.py" = ["S311", "S608"]
 
 [tool.mypy]
 python_version = "3.12"
 strict = true
 ignore_missing_imports = true
-files = ["packages", "servers", "apps", "hosts"]
+files = ["packages", "servers"]
 exclude = ["/tests/"]

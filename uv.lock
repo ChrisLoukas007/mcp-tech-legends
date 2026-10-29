@@ -9,6 +9,7 @@ resolution-markers = [
 
 [manifest]
 members = [
+    "figures-db-mcp",
     "mcp-kit",
     "mcp-tech-legends",
 ]
@@ -477,6 +478,21 @@ wheels = [
 ]
 
 [[package]]
+name = "figures-db-mcp"
+version = "0.1.0"
+source = { editable = "servers/figures-db-mcp" }
+dependencies = [
+    { name = "asyncpg" },
+    { name = "mcp-kit" },
+]
+
+[package.metadata]
+requires-dist = [
+    { name = "asyncpg", specifier = ">=0.32.0" },
+    { name = "mcp-kit", editable = "packages/mcp-kit" },
+]
+
+[[package]]
 name = "googleapis-common-protos"
 version = "1.76.0"
 source = { registry = "https://pypi.org/simple" }
@@ -765,6 +781,7 @@ name = "mcp-tech-legends"
 version = "0.1.0"
 source = { virtual = "." }
 dependencies = [
+    { name = "figures-db-mcp" },
     { name = "mcp-kit" },
 ]
 
@@ -778,7 +795,10 @@ dev = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "mcp-kit", editable = "packages/mcp-kit" }]
+requires-dist = [
+    { name = "figures-db-mcp", editable = "servers/figures-db-mcp" },
+    { name = "mcp-kit", editable = "packages/mcp-kit" },
+]
 
 [package.metadata.requires-dev]
 dev = [

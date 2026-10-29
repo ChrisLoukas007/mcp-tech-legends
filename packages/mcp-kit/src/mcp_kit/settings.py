@@ -24,7 +24,7 @@ class ServerSettings(BaseSettings):
     allowed_hosts: list[str] = ["localhost:*", "127.0.0.1:*"]
 
     # OAuth 2.1 resource server (http only). Each server has its OWN audience.
-    issuer_url: str = "http://localhost:8080/realms/legends"
+    issuer_url: str = "http://localhost:8180/realms/legends"
     jwks_url: str | None = None
     audience: str = "change-me"
     public_url: str = "http://localhost:8100/mcp"
