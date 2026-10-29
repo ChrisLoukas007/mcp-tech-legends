@@ -8,6 +8,8 @@ dependencies = [
     "mcp-kit",
     "figures-db-mcp",
     "wiki-mcp",
+    "hall-of-fame-api",
+    "hall-of-fame-mcp",
 ]
 
 [tool.uv]
@@ -20,6 +22,8 @@ members = ["packages/*", "servers/*", "apps/*", "hosts/*"]
 mcp-kit = { workspace = true }
 figures-db-mcp = { workspace = true }
 wiki-mcp = { workspace = true }
+hall-of-fame-api = { workspace = true }
+hall-of-fame-mcp = { workspace = true }
 
 [dependency-groups]
 dev = [
@@ -27,6 +31,7 @@ dev = [
     "pytest>=9.2.0",
     "pytest-asyncio>=1.4.1",
     "ruff>=0.17.3",
+    "httpx>=0.28.1",
 ]
 
 [tool.pytest.ini_options]
@@ -60,5 +65,5 @@ known-first-party = ["mcp_kit", "figures_db_mcp", "wiki_mcp", "hall_of_fame_mcp"
 python_version = "3.12"
 strict = true
 ignore_missing_imports = true
-files = ["packages", "servers"]
+files = ["packages", "servers", "apps"]
 exclude = ["/tests/"]

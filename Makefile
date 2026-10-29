@@ -31,6 +31,7 @@ test:  ## unit tests (no Docker needed)
 
 test-integration:  ## all tests against the running stack
 	FIGURES_DB_MCP_DATABASE_URL=postgresql://figures_reader:$(FIGURES_READER_PASSWORD)@localhost:5433/legends \
+	HALL_OF_FAME_API_DATABASE_URL=postgresql://halloffame_app:$(HALLOFFAME_APP_PASSWORD)@localhost:5433/legends \
 	uv run pytest -q
 
 .PHONY: help env up down reset seed lint test test-integration

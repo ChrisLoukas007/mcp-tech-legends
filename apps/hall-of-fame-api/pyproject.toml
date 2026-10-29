@@ -1,0 +1,20 @@
+[project]
+name = "hall-of-fame-api"
+version = "0.1.0"
+description = "The private app: each user's Hall of Fame (collections and notes). Not an MCP server."
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi>=0.120.0",
+    "uvicorn>=0.54.0",
+    "asyncpg>=0.32.0",
+    "pyjwt[crypto]>=2.15.1",
+    "pydantic-settings>=2.16.2",
+    "slowapi>=0.1.9",
+]
+
+[project.scripts]
+hall-of-fame-api = "hall_of_fame_api.__main__:main"
+
+[build-system]
+requires = ["uv_build>=0.13.5,<0.14.0"]
+build-backend = "uv_build"

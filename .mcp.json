@@ -22,6 +22,20 @@
       "env": {
         "WIKI_MCP_STDIO_SCOPES": "[\"wiki:read\"]"
       }
+    },
+    "hall-of-fame": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--quiet",
+        "hall-of-fame-mcp"
+      ],
+      "env": {
+        "HALL_OF_FAME_MCP_CLIENT_SECRET": "${HALL_OF_FAME_MCP_CLIENT_SECRET}",
+        "HALL_OF_FAME_MCP_STDIO_SUBJECT": "ada",
+        "HALL_OF_FAME_MCP_STDIO_SCOPES": "[\"halloffame:read\",\"halloffame:write\"]",
+        "HALL_OF_FAME_MCP_STDIO_ROLES": "[\"legends-viewer\",\"legends-curator\"]"
+      }
     }
   }
 }
