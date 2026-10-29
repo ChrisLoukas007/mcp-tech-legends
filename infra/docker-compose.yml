@@ -7,6 +7,31 @@
 
 name: tech-legends
 
+# Shared settings, reused below with YAML anchors (&name) and merges (<<: *name).
+x-python-service: &python-service
+  build: { context: .., dockerfile: Dockerfile }
+  image: tech-legends:local
+  read_only: true
+  tmpfs: ["/tmp"]
+  cap_drop: ["ALL"]
+  security_opt: ["no-new-privileges:true"]
+  restart: unless-stopped
+  depends_on:
+    postgres: { condition: service_healthy }
+    keycloak: { condition: service_healthy }
+
+x-healthcheck: &healthcheck
+  interval: 10s
+  timeout: 3s
+  retries: 10
+
+# Tokens carry iss=http://localhost:8180/realms/legends (the default issuer_url everywhere);
+# the signing keys (JWKS) are fetched over the internal network.
+x-values:
+  jwks: &jwks http://keycloak:8080/realms/legends/protocol/openid-connect/certs
+  audit-db: &audit-db postgresql://audit_writer:${AUDIT_WRITER_PASSWORD}@postgres:5432/legends
+  otlp: &otlp http://tempo:4318
+
 services:
   postgres:
     image: postgres:17-alpine
@@ -47,6 +72,63 @@ services:
       interval: 10s
       timeout: 5s
       retries: 30
+
+  # --- the private app ------------------------------------------------------------------
+
+  hall-of-fame-api:
+    <<: *python-service
+    command: ["hall-of-fame-api"]
+    environment:
+      HALL_OF_FAME_API_HOST: 0.0.0.0
+      HALL_OF_FAME_API_DATABASE_URL: postgresql://halloffame_app:${HALLOFFAME_APP_PASSWORD}@postgres:5432/legends
+      HALL_OF_FAME_API_JWKS_URL: http://keycloak:8080/realms/legends/protocol/openid-connect/certs
+    ports: ["127.0.0.1:8200:8200"]
+    healthcheck: { <<: *healthcheck, test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8200/healthz', timeout=2)"] }
+
+  # --- the three MCP servers (Streamable HTTP + OAuth) ------------------------------------
+
+  figures-db-mcp:
+    <<: *python-service
+    command: ["figures-db-mcp"]
+    environment:
+      FIGURES_DB_MCP_TRANSPORT: http
+      FIGURES_DB_MCP_HOST: 0.0.0.0
+      FIGURES_DB_MCP_JWKS_URL: *jwks
+      FIGURES_DB_MCP_ALLOWED_HOSTS: '["localhost:*", "127.0.0.1:*", "figures-db-mcp:*"]'
+      FIGURES_DB_MCP_AUDIT_DATABASE_URL: *audit-db
+      FIGURES_DB_MCP_OTLP_ENDPOINT: *otlp
+      FIGURES_DB_MCP_DATABASE_URL: postgresql://figures_reader:${FIGURES_READER_PASSWORD}@postgres:5432/legends
+    ports: ["127.0.0.1:8101:8101"]
+    healthcheck: { <<: *healthcheck, test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8101/healthz', timeout=2)"] }
+
+  hall-of-fame-mcp:
+    <<: *python-service
+    command: ["hall-of-fame-mcp"]
+    environment:
+      HALL_OF_FAME_MCP_TRANSPORT: http
+      HALL_OF_FAME_MCP_HOST: 0.0.0.0
+      HALL_OF_FAME_MCP_JWKS_URL: *jwks
+      HALL_OF_FAME_MCP_ALLOWED_HOSTS: '["localhost:*", "127.0.0.1:*", "hall-of-fame-mcp:*"]'
+      HALL_OF_FAME_MCP_AUDIT_DATABASE_URL: *audit-db
+      HALL_OF_FAME_MCP_OTLP_ENDPOINT: *otlp
+      HALL_OF_FAME_MCP_API_URL: http://hall-of-fame-api:8200
+      HALL_OF_FAME_MCP_TOKEN_URL: http://keycloak:8080/realms/legends/protocol/openid-connect/token
+      HALL_OF_FAME_MCP_CLIENT_SECRET: ${HALL_OF_FAME_MCP_CLIENT_SECRET}
+    ports: ["127.0.0.1:8102:8102"]
+    healthcheck: { <<: *healthcheck, test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8102/healthz', timeout=2)"] }
+
+  wiki-mcp:
+    <<: *python-service
+    command: ["wiki-mcp"]
+    environment:
+      WIKI_MCP_TRANSPORT: http
+      WIKI_MCP_HOST: 0.0.0.0
+      WIKI_MCP_JWKS_URL: *jwks
+      WIKI_MCP_ALLOWED_HOSTS: '["localhost:*", "127.0.0.1:*", "wiki-mcp:*"]'
+      WIKI_MCP_AUDIT_DATABASE_URL: *audit-db
+      WIKI_MCP_OTLP_ENDPOINT: *otlp
+    ports: ["127.0.0.1:8103:8103"]
+    healthcheck: { <<: *healthcheck, test: ["CMD", "python", "-c", "import urllib.request as u; u.urlopen('http://127.0.0.1:8103/healthz', timeout=2)"] }
 
 volumes:
   pgdata:
