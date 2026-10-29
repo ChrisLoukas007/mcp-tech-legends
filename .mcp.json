@@ -2,10 +2,25 @@
   "mcpServers": {
     "figures-db": {
       "command": "uv",
-      "args": ["run", "--quiet", "figures-db-mcp"],
+      "args": [
+        "run",
+        "--quiet",
+        "figures-db-mcp"
+      ],
       "env": {
         "FIGURES_DB_MCP_DATABASE_URL": "postgresql://figures_reader:${FIGURES_READER_PASSWORD}@localhost:5433/legends",
         "FIGURES_DB_MCP_STDIO_SCOPES": "[\"figures:read\"]"
+      }
+    },
+    "wiki": {
+      "command": "uv",
+      "args": [
+        "run",
+        "--quiet",
+        "wiki-mcp"
+      ],
+      "env": {
+        "WIKI_MCP_STDIO_SCOPES": "[\"wiki:read\"]"
       }
     }
   }

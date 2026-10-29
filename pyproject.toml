@@ -7,6 +7,7 @@ requires-python = ">=3.12"
 dependencies = [
     "mcp-kit",
     "figures-db-mcp",
+    "wiki-mcp",
 ]
 
 [tool.uv]
@@ -18,6 +19,7 @@ members = ["packages/*", "servers/*", "apps/*", "hosts/*"]
 [tool.uv.sources]
 mcp-kit = { workspace = true }
 figures-db-mcp = { workspace = true }
+wiki-mcp = { workspace = true }
 
 [dependency-groups]
 dev = [
@@ -25,7 +27,6 @@ dev = [
     "pytest>=9.2.0",
     "pytest-asyncio>=1.4.1",
     "ruff>=0.17.3",
-    "respx>=0.22.0",
 ]
 
 [tool.pytest.ini_options]
