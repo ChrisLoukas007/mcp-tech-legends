@@ -1,3 +1,5 @@
+# Where Grafana reads data from: Prometheus for metrics, Tempo for traces. Both are reached by
+# their compose service names on the internal network, not through localhost.
 apiVersion: 1
 datasources:
   - name: Prometheus

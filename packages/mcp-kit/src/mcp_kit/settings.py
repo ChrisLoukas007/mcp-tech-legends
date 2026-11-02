@@ -1,9 +1,14 @@
-"""Settings every MCP server shares. Each server subclasses this with its own env prefix.
+"""Step 1 of 7, settings: WHAT can be configured, for every server.
+
+The shared base: transport, OAuth, the stdio identity and observability. Each server subclasses
+it with its own env prefix and adds only its own fields:
 
     class Settings(ServerSettings):
         model_config = SettingsConfigDict(env_prefix="WIKI_MCP_")
 
 so `WIKI_MCP_PORT=8103` configures only that server.
+
+Next: observability.py (how a server reports what it does).
 """
 
 from __future__ import annotations

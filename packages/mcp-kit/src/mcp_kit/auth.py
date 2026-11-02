@@ -1,10 +1,15 @@
-"""Bearer-token verification: every HTTP server is an OAuth 2.1 resource server.
+"""Step 5 of 7, auth: IS this token real, and is it for this server? (HTTP mode only)
 
-The identity provider (Keycloak) signs JWTs. This module checks the signature against the
-provider's public keys (JWKS) and validates issuer, audience and expiry. The SDK calls
-`verify_token` on every HTTP request; returning None makes it answer 401 before any tool runs.
+Bearer-token verification: every HTTP server is an OAuth 2.1 resource server (a service that
+accepts tokens). The identity provider (Keycloak) signs JWTs. This module checks the signature
+against the provider's public keys (JWKS), and validates issuer, audience and expiry. The SDK
+calls `verify_token` on every HTTP request; returning None makes it answer 401 before any tool
+runs. A token that passes becomes the principal that policy.py reads.
 
 Each server has its own audience, so a token minted for figures-db-mcp is useless at wiki-mcp.
+See docs/04-security.md for the whole flow.
+
+Next: server.py (how all the pieces are wired into one running server).
 """
 
 from __future__ import annotations

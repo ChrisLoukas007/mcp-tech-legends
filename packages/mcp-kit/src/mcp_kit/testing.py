@@ -1,4 +1,11 @@
-"""Test helpers shared by every server's tests."""
+"""Step 7 of 7, testing: HOW tests pretend to be a user without Keycloak.
+
+Test helpers shared by every server's tests. `acting_as` puts a fake identity into the same
+auth context that auth.py fills in production, so policy.py runs its real checks against it:
+
+    with acting_as(["halloffame:write"], roles=["legends-viewer"], subject="linus"):
+        ...  # add_note must be denied: linus lacks the curator role
+"""
 
 from __future__ import annotations
 

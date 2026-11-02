@@ -1,7 +1,14 @@
-"""The MCP layer: what the model sees. Thin on purpose.
+"""Step 4 of 6, tools: WHAT the model may ask for. Thin on purpose.
 
-Each tool: typed parameters (become JSON Schema), a docstring written FOR THE MODEL (when to
-use it, what it returns), and one call through run_with_policy to the backend.
+Each tool has three parts:
+    1. typed parameters with limits (Annotated + Field): they become the JSON Schema the model
+       sees, and bad input is rejected before our code runs
+    2. a docstring written FOR THE MODEL: when to use the tool and what it returns
+    3. one call through run_with_policy (scope check, audit, safe errors) to the backend
+
+Tools never contain SQL; they only validate, describe and delegate.
+
+Next: server.py (the server's identity, resources and prompt).
 """
 
 from __future__ import annotations
@@ -17,14 +24,18 @@ from figures_db_mcp.backend import FiguresBackend
 from figures_db_mcp.models import Comparison, FigureProfile, FigureSummary, Milestone, Product
 from mcp_kit.policy import Policy, run_with_policy
 
+# The caller's token (or stdio identity) must carry this scope to use any tool here.
 SCOPE = "figures:read"
+# Hints for the host: these tools change nothing and only touch our own database.
 READ_ONLY = ToolAnnotations(read_only_hint=True, open_world_hint=False)
 
+# Shared input type for every slug parameter: lowercase letters, digits and dashes only.
 Slug = Annotated[
     str, Field(pattern=r"^[a-z0-9-]{2,60}$", description="Figure slug from search_figures, e.g. steve-jobs")
 ]
 
 
+# Errors are results: tell the model what went wrong AND what to do next.
 def not_found(kind: str, key: str) -> ToolError:
     return ToolError(f"No {kind} found for '{key}'. Use search_figures to find valid slugs.")
 
@@ -51,6 +62,7 @@ def register_tools(server: MCPServer[Any], backend: FiguresBackend, policy: Poli
     async def get_figure(slug: Slug) -> FigureProfile:
         """Full profile of one figure: biography, country and the organisations they worked at."""
 
+        # The handler runs only if the policy allows the call; `_who` is the verified caller.
         async def handler(_who: object) -> FigureProfile:
             try:
                 return await backend.get_figure(slug)

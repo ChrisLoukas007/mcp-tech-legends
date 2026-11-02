@@ -2,6 +2,15 @@
 #
 #   make up       (= docker compose -f infra/docker-compose.yml --env-file .env up -d --wait)
 #
+# infra/ is everything the code runs ON, not the code itself. Read it in this order:
+#   1. docker-compose.yml          (this file) which services run, and how they connect
+#   2. postgres/01_schema.sql      the tables: three schemas, one per data owner
+#   3. postgres/02_roles.sql       who may touch which schema (least privilege)
+#   4. postgres/generate_seed.py   how the demo data in 03_seed.sql is produced
+#   5. keycloak/realm.json         users, roles, clients and scope -> audience (JSON: no comments;
+#                                  see docs/04-security.md)
+#   6. prometheus/, tempo/, grafana/  collect metrics and traces, then show them
+#
 # Host ports avoid the defaults (5432, 8080, 3000, 9090) so this stack can run next to others.
 # Every port binds to 127.0.0.1 only.
 
@@ -41,6 +50,8 @@ services:
       FIGURES_READER_PASSWORD: ${FIGURES_READER_PASSWORD:?set in .env}
       HALLOFFAME_APP_PASSWORD: ${HALLOFFAME_APP_PASSWORD:?set in .env}
       AUDIT_WRITER_PASSWORD: ${AUDIT_WRITER_PASSWORD:?set in .env}
+    # Files in docker-entrypoint-initdb.d run once, in name order, only when the data volume is
+    # empty. After a schema change: `docker compose down -v` (deletes the data) and up again.
     volumes:
       - ./postgres/01_schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
       - ./postgres/02_roles.sql:/docker-entrypoint-initdb.d/02_roles.sql:ro

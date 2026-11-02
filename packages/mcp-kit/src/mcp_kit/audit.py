@@ -1,13 +1,20 @@
-"""Audit trail: one record per tool call or resource read, allowed or denied.
+"""Step 3 of 7, audit: HOW every call is recorded, allowed or denied.
+
+Logs are for debugging and may be sampled or rotated away; the audit trail answers "who did
+what, when, and was it allowed?" and is never edited. One record per tool call or resource read.
 
 Arguments are stored only as a SHA-256 fingerprint, so the audit store never becomes a
-second copy of personal data. Two sinks:
+second copy of personal data: you can prove two calls had the same arguments without storing
+them. A sink is a place records are written to:
 
     LogAuditSink       always on: a JSON log line with event="audit"
     PostgresAuditSink  when AUDIT_DATABASE_URL is set: INSERT into audit.events through a
-                       role that can INSERT but not UPDATE or DELETE (infra/postgres/03_roles.sql)
+                       role that can INSERT but not UPDATE or DELETE (infra/postgres/02_roles.sql)
+    FanOutAuditSink    writes each record to several sinks
 
 A failed audit write never fails the business call; it increments a metric that alerts.
+
+Next: policy.py (the gate that produces these records).
 """
 
 from __future__ import annotations

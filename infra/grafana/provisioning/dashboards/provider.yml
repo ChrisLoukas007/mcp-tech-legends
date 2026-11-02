@@ -1,3 +1,6 @@
+# Provisioning = Grafana configures itself from files at startup, no clicking in the UI.
+# This file says: load every dashboard JSON found in /var/lib/grafana/dashboards
+# (mounted from infra/grafana/dashboards/) into the "Tech Legends" folder.
 apiVersion: 1
 providers:
   - name: tech-legends

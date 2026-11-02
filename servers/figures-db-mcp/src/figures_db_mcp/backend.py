@@ -1,7 +1,15 @@
-"""The database side: plain asyncpg, no MCP imports. Every query is parameterised ($1, $2)
-and bounded (LIMIT), and the role it runs as can only read (infra/postgres/02_roles.sql).
+"""Step 3 of 6, backend: HOW the data is fetched. Plain asyncpg, no MCP imports.
+
+Think of it as the kitchen: it runs SQL and never talks to the model directly, so it can be
+tested on its own. Every query follows three rules:
+    - parameterised ($1, $2): input is never pasted into the SQL text, so no SQL injection
+    - bounded (LIMIT): a query can never return a whole table
+    - read-only role: the DB user can only SELECT (infra/postgres/02_roles.sql)
 
 Not found is raised as LookupError; tools.py turns it into a message the model can act on.
+Lifecycle: mcp_kit calls start() at boot, ready() on /readyz, and stop() at shutdown.
+
+Next: tools.py (what the model may ask for).
 """
 
 from __future__ import annotations
@@ -33,6 +41,7 @@ class FiguresBackend:
         self._pool: asyncpg.Pool | None = None
 
     async def start(self) -> None:
+        # A pool keeps a few connections open and reuses them, instead of connecting per query.
         self._pool = await asyncpg.create_pool(
             self._dsn,
             min_size=1,
@@ -87,6 +96,7 @@ class FiguresBackend:
     async def list_products(
         self, figure_slug: str | None, organization_slug: str | None, from_year: int, to_year: int, limit: int
     ) -> list[Product]:
+        # "$1 IS NULL OR ..." means a filter that was not given matches every row.
         rows = await self.pool.fetch(
             _PRODUCT_SELECT
             + """
@@ -130,6 +140,7 @@ class FiguresBackend:
             """,
             slugs,
         )
+        # Name every unknown slug, so the model knows exactly which one to fix.
         missing = set(slugs) - {r["slug"] for r in rows}
         if missing:
             raise LookupError(", ".join(sorted(missing)))

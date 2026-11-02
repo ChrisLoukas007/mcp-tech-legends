@@ -1,19 +1,28 @@
-"""One way to build and run every server in this repo.
+"""Step 6 of 7, server: HOW the pieces above become a running server.
 
-A server provides three things and `serve()` does the rest:
+One way to build and run every server in this repo. A server provides three things and
+`serve()` does the rest:
 
     ServerInfo   name, title, version, instructions for the model
     Backend      the thing it wraps (DB pool, REST client, web client): start/stop/ready
     register()   adds its tools, resources and prompts, capturing backend + policy
 
 `serve()` then wires logging, tracing, audit, auth (http) or a local identity (stdio),
-health probes and /metrics, and runs the chosen transport.
+health probes and /metrics, and runs the chosen transport. The difference between the two:
+
+    stdio  no token: the identity comes from <PREFIX>_STDIO_* settings, set once at startup
+    http   a JwtTokenVerifier (auth.py) checks the token on every request
+
+Health probes: /healthz says "the process is alive", /readyz says "the backend works"
+(Docker and Kubernetes use them to restart or hold traffic).
+
+Next: testing.py (how tests act as a user).
 """
 
 from __future__ import annotations
 
 import logging
-from collections.abc import AsyncIterator, Callable
+from collections.abc import AsyncGenerator, Callable
 from contextlib import asynccontextmanager
 from dataclasses import dataclass
 from typing import Any, Protocol
@@ -68,7 +77,7 @@ def create_server[B: Backend](
     with_auth: bool,
 ) -> MCPServer[Any]:
     @asynccontextmanager
-    async def lifespan(_: MCPServer[Any]) -> AsyncIterator[B]:
+    async def lifespan(_: MCPServer[Any]) -> AsyncGenerator[B]:
         await backend.start()
         try:
             yield backend

@@ -1,7 +1,5 @@
 # 1. MCP concepts
 
-Spec **2026-07-28**, Python SDK **mcp 2.3.0**. Next: [2. Anatomy of a server](02-anatomy-of-a-server.md).
-
 ## What MCP is
 
 **MCP (Model Context Protocol)** is an open standard that lets an AI application discover and
@@ -83,9 +81,3 @@ Since spec 2026-07-28 there is no `initialize` handshake and no session id: ever
 carries its protocol version in `_meta`. Servers are **stateless**, so any replica can answer
 any request (`stateless_http=True` in `mcp_kit/server.py`).
 
-## Check yourself
-
-1. A tool raises `RuntimeError("db password=...")`. What does the model see? *(Only "The
-   operation failed... reference <id>"; details stay in the server log.)*
-2. Why does each tool name in agent-cli start with `figures-db__` or `wiki__`? *(Two servers may
-   expose tools with the same name; the prefix lets the host route the call.)*

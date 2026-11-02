@@ -1,4 +1,6 @@
-"""The agent loop: the model decides, the host executes, the servers enforce.
+"""Step 3 of 5, loop: HOW one question becomes model calls and tool calls.
+
+The rule of the loop: the model decides, the host executes, the servers enforce.
 
     user question
       -> Claude (with every server's tools)
@@ -7,6 +9,10 @@
       -> otherwise: final answer
 
 Written by hand (no SDK tool runner) so every step of a host is visible.
+The model never touches a server: it only asks for a tool by name, and the host makes the call
+through the ToolRegistry from connections.py.
+
+Next: auth.py (one token per server, HTTP mode only).
 """
 
 from __future__ import annotations
@@ -22,6 +28,8 @@ from agent_cli.connections import ToolRegistry
 
 tracer = trace.get_tracer("agent-cli")
 
+# The host's own instructions to the model. Policy that MUST hold lives in the servers; these lines
+# only steer behaviour (which source to prefer, when to write).
 SYSTEM = """You are the Tech Legends assistant. You answer questions about technology pioneers.
 - Prefer the figures database for facts; use Wikipedia to fill gaps or check them.
 - Say which source each fact came from.
@@ -29,6 +37,8 @@ SYSTEM = """You are the Tech Legends assistant. You answer questions about techn
 - Only save to the user's Hall of Fame when they asked you to. Use a fresh idempotency_key per new item."""
 
 
+# Anything with this create() method can drive the loop: ClaudeLlm in production, a scripted
+# fake in tests/test_loop.py, so the loop is tested without calling Claude.
 class Llm(Protocol):
     async def create(
         self, *, system: str, messages: list[dict[str, Any]], tools: list[dict[str, Any]]
@@ -36,7 +46,9 @@ class Llm(Protocol):
 
 
 class ClaudeLlm:
-    """Claude through the Anthropic SDK. Refusal fallbacks are on (server-side, "default" routing)."""
+    """Claude through the Anthropic SDK. Refusal fallbacks are on (server-side, "default" routing).
+    The only place that touched the SDK is here, so the rest of the host can be tested without
+    calling Claude."""
 
     def __init__(self, model: str, effort: str) -> None:
         self._client = anthropic.AsyncAnthropic()
@@ -77,16 +89,21 @@ async def run_turn(
     result = TurnResult(answer="")
     with tracer.start_as_current_span("agent.turn"):
         for _ in range(max_rounds):
+            # (1) Ask the model, showing it every server's tools.
             response = await llm.create(system=SYSTEM, messages=messages, tools=registry.definitions)
             messages.append({"role": "assistant", "content": response.content})
             result.stop_reason = response.stop_reason
             if response.stop_reason == "refusal":
                 result.answer = "The model declined this request."
                 return result
+            # (2) No tool requested: the text is the final answer.
             calls = [b for b in response.content if b.type == "tool_use"]
             if response.stop_reason != "tool_use" or not calls:
                 result.answer = "\n".join(b.text for b in response.content if b.type == "text")
                 return result
+            # (3) Run every requested tool in parallel, then send all results back in one message,
+            # each matched to its request by tool_use_id. Errors go back too (is_error), so the
+            # model can read "permission denied" or "not found" and adapt.
             result.tool_calls += [c.name for c in calls]
             outcomes = await asyncio.gather(*(registry.call(c.name, c.input) for c in calls))
             messages.append(

@@ -1,6 +1,13 @@
-"""What this server IS: its identity and instructions, plus every tool, resource and prompt.
+"""Step 5 of 6, server: WHO this server is and everything it offers.
 
-Tools live in tools.py. The two resources and one prompt are small, so they live here.
+INFO is its identity card: name, version, and instructions sent to the host when it connects
+(hosts usually pass them on to the model). register() attaches the three kinds of capability:
+    - tools      actions the model calls                 -> tools.py
+    - resources  read-only data addressed by a URI       -> below
+    - prompts    ready-made workflows the user can pick  -> below
+The two resources and one prompt are small, so they live here.
+
+Next: __main__.py (how it all starts).
 """
 
 from __future__ import annotations

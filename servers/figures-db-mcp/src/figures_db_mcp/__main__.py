@@ -1,4 +1,11 @@
-"""Entry point: `uv run figures-db-mcp` (stdio by default, FIGURES_DB_MCP_TRANSPORT=http for HTTP)."""
+"""Step 6 of 6, entry point: HOW it all starts.
+
+`uv run figures-db-mcp` runs main() (wired in pyproject.toml under [project.scripts]).
+main() builds the parts and hands them to the shared kit:
+    Settings (config.py) + FiguresBackend (backend.py) + INFO, register (server.py) -> serve()
+serve() adds auth, audit, logs, metrics and traces, then runs over stdio (the default)
+or HTTP (FIGURES_DB_MCP_TRANSPORT=http).
+"""
 
 from __future__ import annotations
 

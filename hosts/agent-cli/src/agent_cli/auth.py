@@ -1,4 +1,4 @@
-"""How the host gets a DIFFERENT token for each MCP server.
+"""Step 4 of 5, auth: HOW the host gets a DIFFERENT token for each MCP server (HTTP mode only).
 
     1. log in once (browser + PKCE, or a password grant for automated tests), asking for the
        scopes of every server. That login token has all three audiences: it is never sent anywhere.
@@ -7,6 +7,12 @@
     3. every HTTP request to a server gets its own token, refreshed when it nears expiry.
 
 So a token stolen from wiki-mcp's logs is useless at hall-of-fame-mcp.
+
+Terms: PKCE = the app proves it started the login by sending a random secret (verifier) whose
+hash (challenge) it sent earlier; it protects the login code if someone intercepts it.
+A refresh token is a long-lived token used only at Keycloak to get new short-lived access tokens.
+
+Next: __main__.py (how it all starts).
 """
 
 from __future__ import annotations
@@ -28,6 +34,8 @@ REFRESH_MARGIN_SECONDS = 30
 
 
 class TokenBroker:
+    """Logs the user in once, then hands out one cached, per-server access token on request."""
+
     def __init__(self, issuer_url: str, client_id: str, server_scopes: dict[str, str],
                  client_secret: str | None = None) -> None:  # fmt: skip
         self._token_url = f"{issuer_url}/protocol/openid-connect/token"
@@ -48,6 +56,7 @@ class TokenBroker:
                            "scope": self.all_scopes})  # fmt: skip
 
     async def pkce_login(self, redirect_port: int) -> None:
+        """Real users: log in in the browser. `state` guards against a forged redirect."""
         verifier = secrets.token_urlsafe(48)
         challenge = base64.urlsafe_b64encode(hashlib.sha256(verifier.encode()).digest()).rstrip(b"=").decode()
         state = secrets.token_urlsafe(16)
@@ -68,6 +77,7 @@ class TokenBroker:
                            "code_verifier": verifier})  # fmt: skip
 
     async def token_for(self, server: str) -> str:
+        """A token for ONE server: from the cache, or a fresh one asking only for its scopes."""
         cached = self._cache.get(server)
         if cached and time.monotonic() < cached[1] - REFRESH_MARGIN_SECONDS:
             return cached[0]
@@ -119,7 +129,7 @@ def _wait_for_code(authorize_url: str, port: int, expected_state: str) -> str:
             self.end_headers()
             self.wfile.write(b"Logged in. You can close this tab.")
 
-        def log_message(self, *_: object) -> None:  # keep the terminal quiet
+        def log_message(self, format: str, *args: Any) -> None:  # keep the terminal quiet
             return
 
     server = HTTPServer(("127.0.0.1", port), Callback)

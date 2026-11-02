@@ -1,9 +1,16 @@
-"""The three signals every server emits.
+"""Step 2 of 7, observability: HOW a server reports what it does.
 
-logs     JSON lines on stderr (stdout belongs to the stdio transport), with trace_id
-metrics  Prometheus counters/histograms, labelled by server and tool
-traces   OpenTelemetry spans exported over OTLP. The MCP SDK already creates a span per
-         request and carries `traceparent` in `_meta`, so host and server spans join up.
+The three signals every server emits, each answering a different question:
+
+logs     WHAT happened, one event at a time. JSON lines on stderr (stdout belongs to the
+         stdio transport), with trace_id so a log line can be matched to its trace.
+metrics  HOW MANY and HOW FAST, as counters/histograms labelled by server and tool.
+         Prometheus scrapes them from /metrics.
+traces   WHERE the time went across processes. OpenTelemetry spans exported over OTLP. The
+         MCP SDK already creates a span per request and carries `traceparent` in `_meta`, so
+         host and server spans join up into one trace.
+
+Next: audit.py (the permanent record of every call).
 """
 
 from __future__ import annotations

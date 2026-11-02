@@ -1,11 +1,23 @@
-"""Policy enforcement point: every tool call and resource read in every server goes through
+"""Step 4 of 7, policy: WHO may do WHAT. The most important file in the repo.
+
+Policy enforcement point: every tool call and resource read in every server goes through
 `run_with_policy`, so no tool can forget authorisation, audit, metrics or error hiding.
+Think of a security guard at one door that every request must pass.
 
     principal -> scope (+ role) check -> handler -> error mapping -> metrics + audit
+
+principal  the verified caller (subject, scopes, roles), read from the SDK's auth context,
+           which auth.py fills from the token (HTTP) or set_stdio_principal fills (stdio)
+handler    the tool's real work, passed in as a function and run ONLY after the check passes
 
 Two kinds of permission, both must pass:
     scope  what the APP was allowed to ask for (in the token, from the OAuth client)
     role   what the USER is allowed to do (realm roles in the token)
+
+Every outcome is one of: ok, denied, error (a ToolError the model may read), crash (anything
+else: logged in full here, shown to the model only as a reference id).
+
+Next: auth.py (how the token behind the principal is checked).
 """
 
 from __future__ import annotations
