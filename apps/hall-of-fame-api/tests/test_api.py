@@ -97,6 +97,15 @@ async def test_create_note_when_retried_with_same_key_then_one_note(store: Store
 
 
 @needs_db
+async def test_create_note_when_other_owner_used_same_key_then_both_saved(store: Store) -> None:
+    key = f"test-{uuid.uuid4().hex[:12]}"
+    body = NoteCreate(figure_slug="ada-lovelace", body="Same key, different owner")
+    mine, created = await store.create_note(TEST_OWNER, body, key)
+    theirs, created_theirs = await store.create_note(f"{TEST_OWNER}-2", body, key)
+    assert created and created_theirs and mine.id != theirs.id
+
+
+@needs_db
 async def test_create_collection_when_key_reused_for_other_request_then_conflict(store: Store) -> None:
     key = f"test-{uuid.uuid4().hex[:12]}"
     await store.create_collection(TEST_OWNER, CollectionCreate(name=f"c-{key}"), key)

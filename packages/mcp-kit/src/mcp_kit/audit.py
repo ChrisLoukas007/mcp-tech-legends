@@ -24,7 +24,7 @@ import json
 import logging
 from collections.abc import Mapping
 from dataclasses import asdict, dataclass
-from typing import Any, Protocol
+from typing import Any, Literal, Protocol
 
 import asyncpg
 
@@ -32,7 +32,9 @@ from mcp_kit.observability import AUDIT_WRITE_FAILURES
 
 logger = logging.getLogger("audit")
 
+# Both limits are also CHECK constraints on audit.events (infra/postgres/01_schema.sql).
 MAX_ERROR_LENGTH = 500
+type Outcome = Literal["ok", "denied", "error", "crash"]
 
 
 def fingerprint(payload: Mapping[str, Any]) -> str:
@@ -49,7 +51,7 @@ class AuditEvent:
     client_id: str
     operation: str
     args_sha256: str
-    outcome: str
+    outcome: Outcome
     duration_ms: int
     error: str | None = None
 
