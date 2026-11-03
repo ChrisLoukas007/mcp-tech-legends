@@ -9,7 +9,7 @@ auth context that auth.py fills in production, so policy.py runs its real checks
 
 from __future__ import annotations
 
-from collections.abc import Iterator
+from collections.abc import Generator
 from contextlib import contextmanager
 
 from mcp.server.auth.middleware.auth_context import auth_context_var
@@ -18,7 +18,7 @@ from mcp.server.auth.provider import AccessToken
 
 
 @contextmanager
-def acting_as(scopes: list[str], roles: list[str] | None = None, subject: str = "ada") -> Iterator[None]:
+def acting_as(scopes: list[str], roles: list[str] | None = None, subject: str = "ada") -> Generator[None]:
     """Run code as a caller with these scopes and roles, using the SDK's own auth context.
     Set it BEFORE opening an in-process `mcp.Client(server)` so the server task inherits it."""
     token = AccessToken(
