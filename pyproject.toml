@@ -1,9 +1,22 @@
+# The root of a uv WORKSPACE: one repo, several Python packages, one lockfile (uv.lock).
+#
+# This file does three jobs:
+#   1. lists which folders are packages and how they find each other   ([tool.uv.*])
+#   2. installs all of them, plus developer tools, with one `uv sync`   ([project], [dependency-groups])
+#   3. sets ONE quality bar for every package: tests, lint, types       ([tool.pytest], [tool.ruff], [tool.mypy])
+#
+# Each package also has its own small pyproject.toml with its own dependencies and its command
+# name, e.g. servers/figures-db-mcp/pyproject.toml: figures-db-mcp = "figures_db_mcp.__main__:main".
+# Docker starts each container with that command name.
+
 [project]
 name = "mcp-tech-legends"
 version = "0.1.0"
 description = "Teaching repo: three MCP servers, two MCP hosts, one shared kit"
 readme = "README.md"
 requires-python = ">=3.12"
+# "Install every package in this repo." Versions are not given here: [tool.uv.sources] below
+# says each one comes from its folder in this repo.
 dependencies = [
     "mcp-kit",
     "figures-db-mcp",
@@ -13,12 +26,19 @@ dependencies = [
     "agent-cli",
 ]
 
+# The root is a container for the packages, not a package itself: nothing here is built or
+# published, and there is no root source folder.
 [tool.uv]
 package = false
 
+# Every folder matching these patterns that has its own pyproject.toml is a package.
+# The four patterns are the four roles: shared code, MCP servers, plain apps, MCP hosts.
 [tool.uv.workspace]
 members = ["packages/*", "servers/*", "apps/*", "hosts/*"]
 
+# "Take these names from the folders in this repo, never from PyPI." Without an entry here, uv
+# would look for the name on PyPI, and a stranger's package with that name could be installed
+# instead of yours (dependency confusion). Add a line for every new package.
 [tool.uv.sources]
 mcp-kit = { workspace = true }
 figures-db-mcp = { workspace = true }
@@ -27,6 +47,8 @@ hall-of-fame-api = { workspace = true }
 hall-of-fame-mcp = { workspace = true }
 agent-cli = { workspace = true }
 
+# Tools for developers only. `uv sync` installs them; the Docker image does not (`--no-dev`).
+# httpx is here because FastAPI's TestClient (apps/hall-of-fame-api/tests) needs it.
 [dependency-groups]
 dev = [
     "mypy>=2.4.1",
@@ -36,33 +58,51 @@ dev = [
     "httpx>=0.28.1",
 ]
 
+# --- tests: `make test` / `make test-integration` ---------------------------------------
 [tool.pytest.ini_options]
+# Every `async def test_...` runs without a decorator, and all async tests and fixtures share
+# one event loop for the whole run (so a session-wide database pool can be reused).
 asyncio_mode = "auto"
 asyncio_default_fixture_loop_scope = "session"
 asyncio_default_test_loop_scope = "session"
+# Lets each package keep its own tests/ folder without __init__.py files, even when two
+# packages have test files with the same name.
 addopts = "--import-mode=importlib"
 testpaths = ["packages", "servers", "apps", "hosts"]
+# `make test` skips tests with this marker; `make test-integration` runs them against Docker.
 markers = [
     "integration: needs the docker compose stack (make up)",
 ]
 
+# --- lint and format: `make lint` --------------------------------------------------------
 [tool.ruff]
 line-length = 110
 target-version = "py312"
 
+# Rule families: E pycodestyle errors, F pyflakes (unused names, undefined names), I import
+# order, B bugbear (likely bugs), UP modern syntax for 3.12, S bandit (security), ASYNC
+# blocking calls inside async code, RUF ruff's own checks.
+# S101 (`assert`) is off because tests rely on it; application code does not use assert.
 [tool.ruff.lint]
 select = ["E", "F", "I", "B", "UP", "S", "ASYNC", "RUF"]
 ignore = ["S101"]
 
+# Sort imports from these packages as "ours", in their own block after third-party imports.
 [tool.ruff.lint.isort]
 known-first-party = ["mcp_kit", "figures_db_mcp", "wiki_mcp", "hall_of_fame_mcp", "hall_of_fame_api", "agent_cli"]
 
+# Narrow exceptions to the security rules, each limited to the files that need it:
+#   S105/S106  "hardcoded password": tests and the test helper use fake, local-only values
 [tool.ruff.lint.per-file-ignores]
 "**/tests/**" = ["S105", "S106"]
 "packages/mcp-kit/src/mcp_kit/testing.py" = ["S106"]
 # Offline generator: builds SQL text from constants in the same file, values escaped by sql().
+# S311 non-crypto random is fine for demo data; S608 SQL built from strings is safe here.
 "infra/postgres/generate_seed.py" = ["S311", "S608"]
 
+# --- types: `make lint` ------------------------------------------------------------------
+# strict: every function needs type hints and no implicit Any. ignore_missing_imports: do not
+# fail on third-party libraries that ship without type information. Tests are not type-checked.
 [tool.mypy]
 python_version = "3.12"
 strict = true
