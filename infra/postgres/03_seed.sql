@@ -30,6 +30,7 @@ INSERT INTO legends.organizations (slug, name, kind, founded, location) VALUES
 INSERT INTO legends.affiliations (figure_id, organization_id, role, from_year) VALUES ((SELECT id FROM legends.figures WHERE slug = 'steve-jobs'), (SELECT id FROM legends.organizations WHERE slug = 'apple'), 'co-founder', 1976);
 INSERT INTO legends.affiliations (figure_id, organization_id, role, from_year) VALUES ((SELECT id FROM legends.figures WHERE slug = 'steve-jobs'), (SELECT id FROM legends.organizations WHERE slug = 'next'), 'founder', 1985);
 INSERT INTO legends.affiliations (figure_id, organization_id, role, from_year) VALUES ((SELECT id FROM legends.figures WHERE slug = 'steve-jobs'), (SELECT id FROM legends.organizations WHERE slug = 'pixar'), 'CEO', 1986);
+INSERT INTO legends.affiliations (figure_id, organization_id, role, from_year) VALUES ((SELECT id FROM legends.figures WHERE slug = 'steve-jobs'), (SELECT id FROM legends.organizations WHERE slug = 'apple'), 'CEO', 1997);
 INSERT INTO legends.affiliations (figure_id, organization_id, role, from_year) VALUES ((SELECT id FROM legends.figures WHERE slug = 'steve-wozniak'), (SELECT id FROM legends.organizations WHERE slug = 'apple'), 'co-founder', 1976);
 INSERT INTO legends.affiliations (figure_id, organization_id, role, from_year) VALUES ((SELECT id FROM legends.figures WHERE slug = 'bill-gates'), (SELECT id FROM legends.organizations WHERE slug = 'microsoft'), 'co-founder', 1975);
 INSERT INTO legends.affiliations (figure_id, organization_id, role, from_year) VALUES ((SELECT id FROM legends.figures WHERE slug = 'alan-turing'), (SELECT id FROM legends.organizations WHERE slug = 'bletchley-park'), 'codebreaker', 1939);
@@ -104,6 +105,7 @@ INSERT INTO legends.milestones (figure_id, year, title) VALUES ((SELECT id FROM 
 INSERT INTO legends.milestones (figure_id, year, title) VALUES ((SELECT id FROM legends.figures WHERE slug = 'steve-jobs'), 1985, 'Joined NeXT as founder');
 INSERT INTO legends.milestones (figure_id, year, title) VALUES ((SELECT id FROM legends.figures WHERE slug = 'steve-jobs'), 1986, 'Joined Pixar as CEO');
 INSERT INTO legends.milestones (figure_id, year, title) VALUES ((SELECT id FROM legends.figures WHERE slug = 'steve-jobs'), 1988, 'Released NeXT Computer');
+INSERT INTO legends.milestones (figure_id, year, title) VALUES ((SELECT id FROM legends.figures WHERE slug = 'steve-jobs'), 1997, 'Joined Apple as CEO');
 INSERT INTO legends.milestones (figure_id, year, title) VALUES ((SELECT id FROM legends.figures WHERE slug = 'steve-jobs'), 2001, 'Released iPod');
 INSERT INTO legends.milestones (figure_id, year, title) VALUES ((SELECT id FROM legends.figures WHERE slug = 'steve-jobs'), 2007, 'Released iPhone');
 INSERT INTO legends.milestones (figure_id, year, title) VALUES ((SELECT id FROM legends.figures WHERE slug = 'steve-wozniak'), 1950, 'Born in United States');

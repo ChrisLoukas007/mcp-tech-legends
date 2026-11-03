@@ -56,7 +56,7 @@ class Store:
         row = await self._pool.fetchrow(
             """
             INSERT INTO halloffame.collections (owner, name, description, idempotency_key, request_sha256)
-            VALUES ($1, $2, $3, $4, $5) ON CONFLICT (idempotency_key) DO NOTHING
+            VALUES ($1, $2, $3, $4, $5) ON CONFLICT (owner, idempotency_key) DO NOTHING
             RETURNING id, name, description, created_at
             """,
             owner, body.name, body.description, key, digest,
@@ -95,7 +95,7 @@ class Store:
         row = await self._pool.fetchrow(
             """
             INSERT INTO halloffame.notes (owner, figure_slug, body, idempotency_key, request_sha256)
-            VALUES ($1, $2, $3, $4, $5) ON CONFLICT (idempotency_key) DO NOTHING
+            VALUES ($1, $2, $3, $4, $5) ON CONFLICT (owner, idempotency_key) DO NOTHING
             RETURNING id, figure_slug, body, created_at
             """,
             owner, body.figure_slug, body.body, key, digest,

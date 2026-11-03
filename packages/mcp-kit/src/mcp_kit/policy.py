@@ -34,7 +34,7 @@ from mcp.server.auth.middleware.bearer_auth import AuthenticatedUser
 from mcp.server.auth.provider import AccessToken
 from mcp.server.mcpserver.exceptions import ToolError
 
-from mcp_kit.audit import AuditEvent, AuditSink, fingerprint
+from mcp_kit.audit import AuditEvent, AuditSink, Outcome, fingerprint
 from mcp_kit.observability import AUTHZ_DENIED, TOOL_CALLS, TOOL_DURATION
 
 logger = logging.getLogger(__name__)
@@ -113,7 +113,8 @@ async def run_with_policy[T](
     correlation_id = uuid.uuid4().hex
     started = time.perf_counter()
     principal: Principal | None = None
-    outcome, error = "ok", None
+    outcome: Outcome = "ok"
+    error: str | None = None
     try:
         principal = current_principal()
         require(principal, required_scope, required_role)

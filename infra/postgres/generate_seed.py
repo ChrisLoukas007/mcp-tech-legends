@@ -149,6 +149,7 @@ AFFILIATIONS = [
     ("steve-jobs", "apple", "co-founder", 1976),
     ("steve-jobs", "next", "founder", 1985),
     ("steve-jobs", "pixar", "CEO", 1986),
+    ("steve-jobs", "apple", "CEO", 1997),  # a second stint at the same organisation
     ("steve-wozniak", "apple", "co-founder", 1976),
     ("bill-gates", "microsoft", "co-founder", 1975),
     ("alan-turing", "bletchley-park", "codebreaker", 1939),
